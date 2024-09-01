@@ -11,10 +11,10 @@ import time
 from streamlit_input_box import input_box
 from gradio_client import Client 
 
+ 
 
-
-st.set_page_config(page_title="Speak Youtube Subtitles", layout="wide")
-st.markdown(" <style> div[class^='block-container'] { padding-top: 1rem;} ", unsafe_allow_html=True)
+#st.set_page_config(page_title="Listen Youtube Subtitles", layout="wide")
+st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
 
       
 
@@ -517,23 +517,25 @@ def transcription_to_json(my_text):
 #---Bat Dau Main ------------------------------------------------------------------------------------------------
 transcript_en=None
 langSourceText=None
-#st.title('Speak Youtube Subtitles')
-placeholder2 = st.empty()
 
-placeholder0 = st.markdown("<h1 style='text-align: center; color: green;'>Listen Youtube Subtitles</h1>", unsafe_allow_html=True)
-link_vidu = "https://www.youtube.com/embed/5MgBikgcWnY?enablejsapi=1"
-placeholder1 = st.markdown("<h6 style='text-align: center; color: lightgrey;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
+placeholder1 = st.empty()   # giu cho tieu de app
+placeholder2 = st.empty()   # giu cho url vi du
+#placeholder3 = st.empty()   # giu cho khung nhap url 
+
+
+placeholder1.write("<h1 style='text-align: center; color: green;'>Listen Youtube Subtitles</h1>", unsafe_allow_html=True)
+link_vidu="https://www.youtube.com/embed/5MgBikgcWnY?enablejsapi=1"
+placeholder2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
 
 #----------------------------------------------------------------------------------------------------------------
 
 state=st.session_state
 if 'texts' not in state:
     state.texts = ""
-    
-url_vid_input = input_box(min_lines=1,max_lines=2,just_once=False)
+
+url_vid_input = input_box(min_lines=1,max_lines=3,just_once=False)
 #st.text(url_vid_input)
-if url_vid_input != "":
-    placeholder2 = st.empty()
+placeholder4 = st.empty()   # giu cho Thong bao trinh lay phien am 
 
 #url_vid_input = st.text_input("<h2 style='text-align: center; font-size: 2pt;'>'+link_vidu+'</h2>",link_vidu, label_visibility="hidden", key='IP1')
 
@@ -547,11 +549,16 @@ if url_vid_input :
         #url_vid_input = "https://www.youtube.com/embed/" + videoID
         yt = YouTube(url_vid_input)
         tieude = yt.title
-        placeholder0.markdown('&nbsp;')
+        print(yt.length)
+        #placeholder0.markdown('&nbsp;')
         #st.markdown("<h4 style='text-align: center; color: brown;'>"+tieude+"</h4>", unsafe_allow_html=True)
+        #Thay tieu de app bang tieu de video
+        placeholder1.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
+        #Thay url vi du  bang url nhap
+        placeholder2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+url_vid_input+"</h6>", unsafe_allow_html=True)
 
-        placeholder1.markdown("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
         try:
+            placeholder4.write(':blue[Lay phien am tu YT...]')
             transcript_en = YouTubeTranscriptApi.get_transcript(videoID, languages=['en'])
             if isinstance(transcript_en[0], dict):
                 #print(isinstance(transcript_en[0], dict))
@@ -565,6 +572,8 @@ if url_vid_input :
                 #    {'text': 'Hi everyone.', 'start': 9.003, 'duration': 2.062}, 
                 #    {'text': 'Two year ago, my life changed forever.', 'start': 11.825, 'duration': 4.8}]
                 Lap_html_video(transcript_en, videoID, langSourceText)
+                placeholder4.empty()
+
                 # trong html se co dang nay:
                 #<div class="f-grid">
                 #    <div class="youtube-marker-l" data-start="9.003" data-end="11.065">Hi everyone.</div>
@@ -575,21 +584,27 @@ if url_vid_input :
                 #    webbrowser.open('https://tien89talkenvi.github.io/', new=0, autoraise=False)
             st.write('---')
             t2=time.time()
-            st.success('Thoi gian chay: ' + str(int(t2-t1)) + ' sec', icon="✅")
+            #st.success('Thoi gian chay: ' + str(int(t2-t1)) + ' sec', icon="✅")
+            st.success('Video nay dai : ' + str(int(yt.length/60)) + ' phut.', icon="✅")
             st.balloons()
         except:
             print('Khong rut duoc transcript tu YT nen rut cach khac')
-            st.write('Waiting for...from whisper jax.')
+            placeholder4.write(':red[Lay phien am tu API Whisper Jax...Có thể phải làm lại cho đén khi thành công!]')
             langSourceText="en"
             transcript_language = Get_transciption_from_whisperjax(url_vid_input)
             listof_dict_json = transcription_to_json(transcript_language)
+
             Lap_html_video(listof_dict_json, videoID, langSourceText)
+            placeholder4.empty()
 
             st.write('---')
             t2=time.time()
-            st.success('Thoi gian chay: ' + str(int(t2-t1)) + ' sec', icon="✅")
+            #st.success('Thoi gian chay: ' + str(int(t2-t1)) + ' sec', icon="✅")
+            st.success('Video nay dai : ' + str(int(yt.length/60)) + ' phut.', icon="✅")
+
             st.balloons()
     except:
+
         st.error('Unsuccessful !', icon="🚨")
 
 #------------------
