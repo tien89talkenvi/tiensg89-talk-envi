@@ -13,7 +13,7 @@ from gradio_client import Client
 
  
 
-#st.set_page_config(page_title="Listen Youtube Subtitles", layout="wide")
+st.set_page_config(page_title="Listen Youtube Subtitles", layout="wide")
 st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
 
       
