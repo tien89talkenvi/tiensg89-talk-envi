@@ -480,31 +480,28 @@ tbaodong3=st.empty()
 
 
 if url_yt and Find_url_hople(url_yt):
+    yt = YouTube(url_yt)
+    tieude = yt.title
+    videoID = extract.video_id(url_yt)
+    tbaodong2.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
     try:
-        yt = YouTube(url_yt)
-        tieude = yt.title
-        videoID = extract.video_id(url_yt)
-        tbaodong2.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
-        try:
-            tbaodong3.write(':blue[Lay phien am tu YT...]')
-            listof_dict_json = Lay_transcript_dau(videoID)
-            #print(listof_dict_json)
-            Lap_html_video(listof_dict_json, videoID, langSourceText="en")
-            tbaodong3.empty()
-            st.write('---')
-            st.write('Video nay dai : ' + str(int(yt.length/60)) + ' phut.')
-            st.balloons()
-        except:
-            tbaodong3.write(':red[Đợi lấy phiên âm từ API Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
-            transcript_en = Get_transciption_from_whisperjax(url_yt)
-            listof_dict_json = transcription_to_json(transcript_en)
-            Lap_html_video(listof_dict_json, videoID, langSourceText="en")
-            tbaodong3.empty()
-            st.write('---')
-            st.write('Video nay dai : ' + str(int(yt.length/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
-            st.balloons()
+        tbaodong3.write(':blue[Lay phien am tu YT...]')
+        listof_dict_json = Lay_transcript_dau(videoID)
+        #print(listof_dict_json)
+        Lap_html_video(listof_dict_json, videoID, langSourceText="en")
+        tbaodong3.empty()
+        st.write('---')
+        st.write('Video nay dai : ' + str(int(yt.length/60)) + ' phut.')
+        st.balloons()
     except:
-        tbaodong3.write(':red[Url này đã bị lỗi!]')
+        tbaodong3.write(':red[Đợi lấy phiên âm từ API Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
+        transcript_en = Get_transciption_from_whisperjax(url_yt)
+        listof_dict_json = transcription_to_json(transcript_en)
+        Lap_html_video(listof_dict_json, videoID, langSourceText="en")
+        tbaodong3.empty()
+        st.write('---')
+        st.write('Video nay dai : ' + str(int(yt.length/60)) + ' phut. (Quá 120 phút có thể bị cắt!)')
+        st.balloons()
 else:
     st.write(':blue[Hãy nhập vào khung trên một URL hợp lệ của Youtube rồi nhấp mũi tên màu đỏ.]')
 
