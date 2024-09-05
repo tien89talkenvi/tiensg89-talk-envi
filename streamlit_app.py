@@ -475,7 +475,7 @@ tbaodong1 = st.write("<h1 style='text-align: center; color: green;'>Video Yt vá»
 link_vidu="https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9"
 tbaodong2 = st.markdown("<h6 style='text-align: center; color: lightgrey;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
 
-url_yt=input_box(min_lines=3,max_lines=3,just_once=False)
+url_yt=input_box(min_lines=1,max_lines=1,just_once=False)
 tbaodong3=st.empty()
 
 
