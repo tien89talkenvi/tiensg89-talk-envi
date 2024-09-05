@@ -4,7 +4,6 @@ from streamlit_input_box import input_box
 from pytube import YouTube, extract
 from youtube_transcript_api import YouTubeTranscriptApi
 from gradio_client import Client 
-import time
 
 st.set_page_config(page_title="Listen Youtube Subtitles", layout="wide")
 st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
@@ -505,18 +504,8 @@ if url_yt and Find_url_hople(url_yt):
             st.write('Video nay dai : ' + str(int(yt.length/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
             st.balloons()
     except:
-        st.write(':red[Url này đã bị lỗi! Hãy nhập một URL hợp lệ khác.]')
+        tbaodong3.write(':red[Url này đã bị lỗi!]')
 else:
     st.write(':blue[Hãy nhập vào khung trên một URL hợp lệ của Youtube rồi nhấp mũi tên màu đỏ.]')
 
 
-#https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
-#https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   BIGATE          ok en vi
-#https://youtu.be/zBHxv8gbleg?si=zeo5OQ_cx5XsQgeG   TRUMP           ok en vi
-#https://www.youtube.com/embed/lcZDWo6hiuI          Gs University   ok en vi
-#https://www.youtube.com/watch?v=Z2iXr8On3LI        voa anh van     no en no vi (not is yt)
-#https://youtu.be/Zgfi7wnGZlE?si=TzeWpiERRxzdJKVA   obama           ok en vi (#1h)
-#https://youtu.be/d6k48XVpgcM?si=F6f6VjqTQSTk8mwZ   tin Viet
-#https://www.youtube.com/embed/e079x_gKE3Xp_Bt      che lai
-#https://youtu.be/8QlXeGWS-EU?si=vPyl1aFhfCPEEEzK beo dat
-# https://youtu.be/LWiM-LuRe6w?si=RAl8ryt2BT8A8nkB # noi ve AI nhung khong chay trong yt of tien duoc
