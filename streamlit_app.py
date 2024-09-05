@@ -7,9 +7,9 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import streamlit as st
 import streamlit.components.v1 as components 
 from pytube import YouTube, extract
-import time
+#import time
 from streamlit_input_box import input_box
-import re
+#import re
 from gradio_client import Client 
 
 #-----
@@ -488,10 +488,10 @@ def transcription_to_json(my_text):
     return listof_dict_json
 
  
-def Find_url_hople(string):
-    regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-    url = re.findall(regex, string)
-    return [x[0] for x in url]
+#def Find_url_hople(string):
+#    regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+#    url = re.findall(regex, string)
+#    return [x[0] for x in url]
 
 @st.cache_data
 def Lay_transcript_dau(videoId):
@@ -530,7 +530,7 @@ url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
 tbaodong3=st.empty()
 
 
-if url_yt and Find_url_hople(url_yt):
+if url_yt: # and Find_url_hople(url_yt):
     state.texts.append(url_yt)
     #for text in state.texts:
     #    st.text(url_yt)
