@@ -420,7 +420,7 @@ def Get_transciption_from_whisperjax(url_yt):
 @st.cache_data
 def doi_ra_giay(h_m_s000):
     lh_m_s000=h_m_s000.split(":")
-    print(lh_m_s000)
+    #print(lh_m_s000)
     r=0.000
     for i,pt in enumerate(reversed(lh_m_s000)):
         if i==0:
@@ -458,6 +458,17 @@ def Find_url_hople(string):
     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
     url = re.findall(regex, string)
     return [x[0] for x in url]
+
+def Lay_transcript_dau(videoId):
+    transcript_list = YouTubeTranscriptApi.list_transcripts(videoId)
+    for transcript in transcript_list:
+        if transcript.language_code[0:2] != "en":
+            transcript_kq = transcript.translate("en").fetch()
+        else:
+            transcript_kq = transcript.fetch()
+        return transcript_kq
+        #print(transcript) # dong nay se in ra :en ("English (auto-generated)")[TRANSLATABLE]
+        #print(transcript.fetch())   # dong nay in ra list : [{"text":"Tien day.", "start": 07:09.560, "during": 08:09.012},{},..]
  
  
 #########################################################
@@ -469,44 +480,43 @@ url_yt=input_box(min_lines=1,max_lines=1,just_once=False)
 tbaodong3=st.empty()
 
 
-if url_yt :
-    lurlfind = Find_url_hople(url_yt)
-    if len(lurlfind)>0:
-        t1=time.time()
+if url_yt and Find_url_hople(url_yt):
+    try:
+        yt = YouTube(url_yt)
+        tieude = yt.title
+        videoID = extract.video_id(url_yt)
+        tbaodong2.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
         try:
-            yt = YouTube(url_yt)
-            tieude = yt.title
-            videoID = extract.video_id(url_yt)
-            tbaodong2.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
             tbaodong3.write(':blue[Lay phien am tu YT...]')
-            transcript_en = YouTubeTranscriptApi.get_transcript(videoID, languages=['en'])
-            Lap_html_video(transcript_en, videoID, langSourceText='en')
+            listof_dict_json = Lay_transcript_dau(videoID)
+            #print(listof_dict_json)
+            Lap_html_video(listof_dict_json, videoID, langSourceText="en")
             tbaodong3.empty()
-            st.write('Video nay dai : ' + str(int(yt.length/60)) + ' phut.')
             st.write('---')
-            t2=time.time()
-            st.success('Thoi gian chay: ' + str(int(t2-t1)) + ' sec', icon="✅")
+            st.write('Video nay dai : ' + str(int(yt.length/60)) + ' phut.')
             st.balloons()
-            
         except:
-            yt = YouTube(url_yt)
-            tieude = yt.title
-            videoID = extract.video_id(url_yt)
-            tbaodong2.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
-            tbaodong3.write(':red[Lấy phiên âm từ API Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
-            langSourceText="en"
+            tbaodong3.write(':red[Đợi lấy phiên âm từ API Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
             transcript_en = Get_transciption_from_whisperjax(url_yt)
             listof_dict_json = transcription_to_json(transcript_en)
-            Lap_html_video(listof_dict_json, videoID, langSourceText)
+            Lap_html_video(listof_dict_json, videoID, langSourceText="en")
             tbaodong3.empty()
-            st.write('Video nay dai : ' + str(int(yt.length/60)) + ' phut.')
             st.write('---')
-            t2=time.time()
-            st.success('Thoi gian chay: ' + str(int(t2-t1)) + ' sec', icon="✅")
+            st.write('Video nay dai : ' + str(int(yt.length/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
             st.balloons()
-    else:
-        tbaodong3.write('Hãy nhập vào khung trên một URL hợp lệ của Youtube rồi nhấp mũi tên màu đỏ.')
+    except:
+        st.write(':red[Url này đã bị lỗi! Hãy nhập một URL hợp lệ khác.]')
 else:
-    tbaodong3.write('Hãy nhập vào khung trên một URL hợp lệ của Youtube rồi nhấp mũi tên màu đỏ.')
+    st.write(':blue[Hãy nhập vào khung trên một URL hợp lệ của Youtube rồi nhấp mũi tên màu đỏ.]')
 
 
+#https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
+#https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   BIGATE          ok en vi
+#https://youtu.be/zBHxv8gbleg?si=zeo5OQ_cx5XsQgeG   TRUMP           ok en vi
+#https://www.youtube.com/embed/lcZDWo6hiuI          Gs University   ok en vi
+#https://www.youtube.com/watch?v=Z2iXr8On3LI        voa anh van     no en no vi (not is yt)
+#https://youtu.be/Zgfi7wnGZlE?si=TzeWpiERRxzdJKVA   obama           ok en vi (#1h)
+#https://youtu.be/d6k48XVpgcM?si=F6f6VjqTQSTk8mwZ   tin Viet
+#https://www.youtube.com/embed/e079x_gKE3Xp_Bt      che lai
+#https://youtu.be/8QlXeGWS-EU?si=vPyl1aFhfCPEEEzK beo dat
+# https://youtu.be/LWiM-LuRe6w?si=RAl8ryt2BT8A8nkB # noi ve AI nhung khong chay trong yt of tien duoc
