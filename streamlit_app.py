@@ -10,9 +10,6 @@ from pytube import YouTube, extract
 import time
 from streamlit_input_box import input_box
 #-----
-import whisper
-from langdetect import detect
-import webbrowser
 
 
 
@@ -446,44 +443,6 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
                 </html>
                 """,height=900,scrolling=True)
 
-def get_sub_whisper(yt,videoID,langSourceText):
-    placeholder2 = st.empty()
-    placeholder2.write('No subtitle!. Wait for exacting transcript by other way...')
-    # Get the audio stream
-    audio_stream = yt.streams.filter(only_audio=True).first()
-    # Download the audio stream
-    #output_path = "YoutubeAudios"
-    output_path = ""
-    filename = "audio.mp3"
-    audio_stream.download(output_path=output_path, filename=filename)
-    # Load the base model and transcribe the audio
-    model = whisper.load_model("base")
-    result = model.transcribe("audio.mp3",fp16=False)
-    #(phai co fp16=False vi whisper tren CPU, neu GPU thi fp16=True hoac bo di )
-    #Lay text de phat hien ngon ngu
-    transcribed_text = result["text"]
-    #Lay segments de co time
-    transcribed_segments = result["segments"]
-    #print(transcribed_segments)
-    # Detect the language, khong the dung transcribed_segments
-    langSourceText = detect(transcribed_text)
-    print(f"Detected language: {langSourceText}")
-    # Create and open a txt file with the text
-    #create_and_open_txt(transcribed_segments, f"output_{language}.txt")
-    listofdict = transcribed_segments
-    print(listofdict)
-    # se tao mot list cac json [{'text': 'toi la Ti', 'start':0.0, 'end':0.3}, {'text': 'toi la Ti', 'start':0.0, 'end':0.3},...{'text': 'toi la Ti', 'start':0.0, 'end':0.3}]
-    listof_dict_json = [] 
-    for ptdict in listofdict:
-        ptdictnew = {}
-        ptdictnew["start"] = ptdict["start"]
-        ptdictnew["duration"] = ptdict["end"] - ptdict["start"]
-        ptdictnew["text"] = ptdict["text"]
-        listof_dict_json.append(ptdictnew)
-    transcript_language = listof_dict_json
-    placeholder2.empty()
-    #Lap_html_video(transcript_en, videoID)
-    return transcript_language,videoID,langSourceText
 
 
 #==============================================================================
@@ -568,15 +527,13 @@ if url_vid_input :
             #    <div class="youtube-marker-r" data-start="9.003" data-end="11.065"></div>
             #</div>
 
-            if st.button("Go Home"):
-                webbrowser.open('https://tien89talkenvi.github.io/', new=0, autoraise=False)
 
     except:
-        print('loi khong rut duoc transcript_en nen rut cach khac')
-        transcript_language, videoID, langSourceText = get_sub_whisper(yt,videoID,langSourceText)
-        Lap_html_video(transcript_language, videoID, langSourceText)
+        print('Loi khong rut duoc transcript_en nen rut cach khac')
+        #transcript_language, videoID, langSourceText = get_sub_whisper(yt,videoID,langSourceText)
+        #Lap_html_video(transcript_language, videoID, langSourceText)
 
-        st.write('---')
+        #st.write('---')
         t2=time.time()
         st.success('Thoi gian chay: ' + str(int(t2-t1)) + ' sec', icon="✅")
         st.balloons()
