@@ -16,7 +16,7 @@ import streamlit as st
 import streamlit.components.v1 as components 
 from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube, extract
-from streamlit_input_box import input_box
+#from streamlit_input_box import input_box
 from gradio_client import Client 
 import re
 #-----Chay rat tot tren laptop window nhung khi dua len gihub de chay tren icloud thi khong dat.Test mat 2 ngay van the 8-9-2024
@@ -24,7 +24,7 @@ import re
 
 
 st.set_page_config(page_title="Speak Youtube Subtitles", layout="wide")
-st.markdown(" <style> div[class^='block-container'] { padding-top: 0.2rem;} ", unsafe_allow_html=True)
+st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
 
       
 
@@ -49,19 +49,14 @@ def Lay_videoID(url_vid_input):
         return None, None, None
 
 def Lay_transcript_en(videoID):
-    try:
-        transcript_list = YouTubeTranscriptApi.list_transcripts(videoID)
-        for transcript in transcript_list:
-            if transcript.language_code[0:2] != "en":
-                # lay ban dich sang tieng anh
-                transcript_en = transcript.translate("en").fetch()
-            else:
-                # ban dich goc la tieng anh
-                transcript_en = transcript.fetch()
-            return transcript_en
-    except:
-        # ban dich en la None
-        transcript_en = None
+    transcript_list = YouTubeTranscriptApi.list_transcripts(videoID)
+    for transcript in transcript_list:
+        if transcript.language_code[0:2] != "en":
+            # lay ban dich sang tieng anh
+            transcript_en = transcript.translate("en").fetch()
+        else:
+            # ban dich goc la tieng anh
+            transcript_en = transcript.fetch()
         return transcript_en
 
 #-------------------------------------------------------------
@@ -528,36 +523,20 @@ def transcription_to_json(my_text):
 #https://youtu.be/8QlXeGWS-EU?si=vPyl1aFhfCPEEEzK beo dat
 #---Bat Dau Main ------------------------------------------------------------------------------------------------
 tbaodong1 = st.empty()
-tbaodong1.write("<h1 style='text-align: center; color: green;'>YT VIDEO FOR LISTENING SUBTITLES</h1>", unsafe_allow_html=True)
-link_vidu="https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9"
-tbaodong2 = st.markdown("<h6 style='text-align: center; color:lightgrey ;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
+tbaodong1.write("<h1 style='text-align: center; color: green;'>VIDEO FOR LISTENING SUBTITLES</h1>", unsafe_allow_html=True)
+#tbaodong2 = st.empty()
+#tbaodong2.markdown("<h6 style='text-align: center; color:lightgrey ;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
 
+url_yt = st.text_input("Enter Url Ex.  https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   ",)
+tbaodong2 = st.empty()
 
-url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
-
-tbaodong3=st.empty()
-
-# ham nay tra ve videoID hop le co hoac la None
-videoID, tieude, videodai = Lay_videoID(url_yt)
-if videoID:
-    # ham nay tra ve transcript_en co hoac la None
-    transcript_en = Lay_transcript_en(videoID)
-    if transcript_en: # neu co ban en
-        tbaodong2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+url_yt+"</h6>", unsafe_allow_html=True)
-        Lap_html_video(transcript_en, videoID, langSourceText="en")
-        tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
-        tbaodong3.empty()
-        st.write('---')
-        st.write('Video nay dai : ' + str(int(videodai/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
-        st.balloons()
-    else: # transcript_en la None
-        print('lay tu whjax')
-        tbaodong3.write(':red[Đợi lấy phiên âm từ API Whisper-Jax vì Yt không có phiên âm cho link này...Có thể phải làm lại cho đén khi thành công!]')
-        #transcript_en = Get_transciption_from_whisperjax(url_yt)
-        #listof_dict_json = transcription_to_json(transcript_en)
-        #Lap_html_video(listof_dict_json, videoID, langSourceText="en")
-        tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
-        tbaodong3.empty()
-        st.write('---')
-        st.write('Video nay dai : ' + str(int(videodai/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
-        st.balloons()
+if url_yt:
+    videoID = extract.video_id(url_yt)
+    tieude=YouTube(url_yt).title
+    videodai=YouTube(url_yt).length
+    listof_dict_json = Lay_transcript_en(videoID)
+    Lap_html_video(listof_dict_json, videoID, langSourceText="en")
+    tbaodong1.write(tieude)
+    st.write('---')
+    st.write('Video nay dai : ' + str(int(yt.length/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
+    st.balloons()
