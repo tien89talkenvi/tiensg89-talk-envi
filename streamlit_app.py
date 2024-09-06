@@ -9,7 +9,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube, extract
 from streamlit_input_box import input_box
 from gradio_client import Client 
-
+import re
 #-----
 
 
@@ -31,6 +31,18 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", u
 
 #----------------------------------------------------------------------------------------------------------
 #------------------------------------------
+@st.cache_data
+def Find_url_hople(string):
+    regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+    url = re.findall(regex, string)
+    return [x[0] for x in url]
+
+def Check_url_hople(url_vid_input):
+    pass
+    hople=True
+    if hople:
+        return
+     
 def Lay_videoID_transcriptEn(url_vid_input):
     id_ofvid = extract.video_id(url_vid_input)
     try:
@@ -510,14 +522,14 @@ def transcription_to_json(my_text):
 tbaodong1 = st.empty()
 tbaodong1.write("<h4 style='text-align: center; color: green;'>YT VIDEO FOR LISTENING SUBTITLES</h4>", unsafe_allow_html=True)
 link_vidu="https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9"
-tbaodong2 = st.markdown("<h6 style='text-align: center; color: lightgrey;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
+tbaodong2 = st.markdown("<h5 style='text-align: center; color: red;'>"+"Enter youtube url (ex. "+link_vidu+" )"+"</h5>", unsafe_allow_html=True)
 
 
 url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
 
 tbaodong3=st.empty()
 
-if url_yt:
+if url_yt and Find_url_hople(url_yt):
     tbaodong2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+url_yt+"</h6>", unsafe_allow_html=True)
     tbaodong3.write(':blue[Lay phien am tu YT...]')
     videoID, transcript_en = Lay_videoID_transcriptEn(url_yt)
