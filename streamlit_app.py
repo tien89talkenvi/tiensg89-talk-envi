@@ -24,7 +24,7 @@ import re
 
 
 st.set_page_config(page_title="Speak Youtube Subtitles", layout="wide")
-st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
+st.markdown(" <style> div[class^='block-container'] { padding-top: 0.2rem;} ", unsafe_allow_html=True)
 
       
 
@@ -42,9 +42,11 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", u
 def Lay_videoID(url_vid_input):
     try:
         id_ofvid = extract.video_id(url_vid_input)
-        return id_ofvid
+        tieude=YouTube(url_yt).title
+        videodai=YouTube(url_yt).length
+        return id_ofvid, tieude, videodai
     except:
-        return None
+        return None, None, None
 
 def Lay_transcript_en(videoID):
     try:
@@ -526,9 +528,9 @@ def transcription_to_json(my_text):
 #https://youtu.be/8QlXeGWS-EU?si=vPyl1aFhfCPEEEzK beo dat
 #---Bat Dau Main ------------------------------------------------------------------------------------------------
 tbaodong1 = st.empty()
-tbaodong1.write("<h4 style='text-align: center; color: green;'>YT VIDEO FOR LISTENING SUBTITLES</h4>", unsafe_allow_html=True)
+tbaodong1.write("<h1 style='text-align: center; color: green;'>YT VIDEO FOR LISTENING SUBTITLES</h1>", unsafe_allow_html=True)
 link_vidu="https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9"
-tbaodong2 = st.markdown("<h5 style='text-align: center; color: red;'>"+"Enter youtube uUrl (ex. "+link_vidu+" )"+"</h5>", unsafe_allow_html=True)
+tbaodong2 = st.markdown("<h6 style='text-align: center; color:lightgrey ;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
 
 
 url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
@@ -536,17 +538,17 @@ url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
 tbaodong3=st.empty()
 
 # ham nay tra ve videoID hop le co hoac la None
-videoID = Lay_videoID(url_yt)
+videoID, tieude, videodai = Lay_videoID(url_yt)
 if videoID:
     # ham nay tra ve transcript_en co hoac la None
     transcript_en = Lay_transcript_en(videoID)
     if transcript_en: # neu co ban en
         tbaodong2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+url_yt+"</h6>", unsafe_allow_html=True)
         Lap_html_video(transcript_en, videoID, langSourceText="en")
-        tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+YouTube(url_yt).title+"</h4>", unsafe_allow_html=True)
+        tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
         tbaodong3.empty()
         st.write('---')
-        st.write('Video nay dai : ' + str(int(YouTube(url_yt).length/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
+        st.write('Video nay dai : ' + str(int(videodai/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
         st.balloons()
     else: # transcript_en la None
         print('lay tu whjax')
@@ -554,8 +556,8 @@ if videoID:
         #transcript_en = Get_transciption_from_whisperjax(url_yt)
         #listof_dict_json = transcription_to_json(transcript_en)
         #Lap_html_video(listof_dict_json, videoID, langSourceText="en")
-        tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+YouTube(url_yt).title+"</h4>", unsafe_allow_html=True)
+        tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
         tbaodong3.empty()
         st.write('---')
-        st.write('Video nay dai : ' + str(int(YouTube(url_yt).length/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
+        st.write('Video nay dai : ' + str(int(videodai/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
         st.balloons()
