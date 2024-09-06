@@ -9,7 +9,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube, extract
 from streamlit_input_box import input_box
 from gradio_client import Client 
-import re
+
 #-----
 
 
@@ -31,11 +31,6 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", u
 
 #----------------------------------------------------------------------------------------------------------
 #------------------------------------------
-@st.cache_data
-def Find_url_hople(string):
-    regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-    url = re.findall(regex, string)
-    return [x[0] for x in url]
 
 def Check_url_hople(url_vid_input):
     pass
@@ -57,7 +52,7 @@ def Lay_videoID_transcriptEn(url_vid_input):
         transcript_en = ""
         return id_ofvid, transcript_en
 #-------------------------------------------------------------
-@st.cache_data
+
 def Lap_html_video(transcript_en, videoID,langSourceText):
     chp = ''
     for pt_dict in transcript_en:
@@ -466,7 +461,6 @@ def Get_transciption_from_whisperjax(url_yt):
     video_html,transcription_str,transcription_time_s_str = client.predict(url_yt, "translate", True, api_name="/predict_2")
     return transcription_str
 
-@st.cache_data
 def doi_ra_giay(h_m_s000):
     lh_m_s000=h_m_s000.split(":")
     #print(lh_m_s000)
@@ -529,7 +523,7 @@ url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
 
 tbaodong3=st.empty()
 
-if url_yt and Find_url_hople(url_yt):
+if url_yt :
     tbaodong2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+url_yt+"</h6>", unsafe_allow_html=True)
     tbaodong3.write(':blue[Lay phien am tu YT...]')
     videoID, transcript_en = Lay_videoID_transcriptEn(url_yt)
