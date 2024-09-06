@@ -1,16 +1,25 @@
-# pip install streamlit
-# pip install youtube-transcript-api
-# pip install pytube
-# pip install googletrans==4.0.0rc1
-# pip install  yt-dlp
+############################################################################
+# Trinh lay phu de tren youtube-transcript-api
+# Neu khong co PD tren do thi no tu chuyen sang whisper-jax de lay phien am, 
+#chay rat mau neu api it user
+# Neu url empty hay is not yt thi no thoat ra
+# Khi trien khai tren icloud streamlit github thi chay khong dat.
+ 
+### pip install:
+#streamlit==1.38.0
+#youtube-transcript-api==0.6.2
+#pytube==15.0.0
+#streamlit-input-box==0.0.3
+#gradio-client==1.3.0
+#############################################################################
 import streamlit as st
 import streamlit.components.v1 as components 
 from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube, extract
 from streamlit_input_box import input_box
 from gradio_client import Client 
-
-#-----
+import re
+#-----Chay rat tot tren laptop window nhung khi dua len gihub de chay tren icloud thi khong dat.Test mat 2 ngay van the 8-9-2024
 
 
 
@@ -30,29 +39,31 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", u
 #         """, unsafe_allow_html=True)
 
 #----------------------------------------------------------------------------------------------------------
-#------------------------------------------
-
-def Check_url_hople(url_vid_input):
-    pass
-    hople=True
-    if hople:
-        return
-     
-def Lay_videoID_transcriptEn(url_vid_input):
-    id_ofvid = extract.video_id(url_vid_input)
+def Lay_videoID(url_vid_input):
     try:
-        transcript_list = YouTubeTranscriptApi.list_transcripts(id_ofvid)
+        id_ofvid = extract.video_id(url_vid_input)
+        return id_ofvid
+    except:
+        return None
+
+def Lay_transcript_en(videoID):
+    try:
+        transcript_list = YouTubeTranscriptApi.list_transcripts(videoID)
         for transcript in transcript_list:
             if transcript.language_code[0:2] != "en":
+                # lay ban dich sang tieng anh
                 transcript_en = transcript.translate("en").fetch()
             else:
+                # ban dich goc la tieng anh
                 transcript_en = transcript.fetch()
-            return id_ofvid, transcript_en
+            return transcript_en
     except:
-        transcript_en = ""
-        return id_ofvid, transcript_en
-#-------------------------------------------------------------
+        # ban dich en la None
+        transcript_en = None
+        return transcript_en
 
+#-------------------------------------------------------------
+@st.cache_data
 def Lap_html_video(transcript_en, videoID,langSourceText):
     chp = ''
     for pt_dict in transcript_en:
@@ -461,6 +472,7 @@ def Get_transciption_from_whisperjax(url_yt):
     video_html,transcription_str,transcription_time_s_str = client.predict(url_yt, "translate", True, api_name="/predict_2")
     return transcription_str
 
+@st.cache_data
 def doi_ra_giay(h_m_s000):
     lh_m_s000=h_m_s000.split(":")
     #print(lh_m_s000)
@@ -516,32 +528,32 @@ def transcription_to_json(my_text):
 tbaodong1 = st.empty()
 tbaodong1.write("<h4 style='text-align: center; color: green;'>YT VIDEO FOR LISTENING SUBTITLES</h4>", unsafe_allow_html=True)
 link_vidu="https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9"
-tbaodong2 = st.markdown("<h5 style='text-align: center; color: red;'>"+"Enter youtube url (ex. "+link_vidu+" )"+"</h5>", unsafe_allow_html=True)
+tbaodong2 = st.markdown("<h5 style='text-align: center; color: red;'>"+"Enter youtube uUrl (ex. "+link_vidu+" )"+"</h5>", unsafe_allow_html=True)
 
 
 url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
 
 tbaodong3=st.empty()
 
-if url_yt :
-    tbaodong2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+url_yt+"</h6>", unsafe_allow_html=True)
-    tbaodong3.write(':blue[Lay phien am tu YT...]')
-    videoID, transcript_en = Lay_videoID_transcriptEn(url_yt)
-    #tbaodong1.markdown("<h4 style='text-align: center; color:orange;'>"+YouTube(url_yt).title+"</h4>", unsafe_allow_html=True)
-    #st.write(videoID)
-    if transcript_en:
-        #st.write(transcript_en)
+# ham nay tra ve videoID hop le co hoac la None
+videoID = Lay_videoID(url_yt)
+if videoID:
+    # ham nay tra ve transcript_en co hoac la None
+    transcript_en = Lay_transcript_en(videoID)
+    if transcript_en: # neu co ban en
+        tbaodong2.markdown("<h6 style='text-align: center; color: lightgrey;'>"+url_yt+"</h6>", unsafe_allow_html=True)
         Lap_html_video(transcript_en, videoID, langSourceText="en")
         tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+YouTube(url_yt).title+"</h4>", unsafe_allow_html=True)
         tbaodong3.empty()
         st.write('---')
         st.write('Video nay dai : ' + str(int(YouTube(url_yt).length/60)+1) + ' phut. (Quá 120 phút có thể bị cắt!)')
         st.balloons()
-    else:   #transcript_en==''
+    else: # transcript_en la None
+        print('lay tu whjax')
         tbaodong3.write(':red[Đợi lấy phiên âm từ API Whisper-Jax vì Yt không có phiên âm cho link này...Có thể phải làm lại cho đén khi thành công!]')
-        transcript_en = Get_transciption_from_whisperjax(url_yt)
-        listof_dict_json = transcription_to_json(transcript_en)
-        Lap_html_video(listof_dict_json, videoID, langSourceText="en")
+        #transcript_en = Get_transciption_from_whisperjax(url_yt)
+        #listof_dict_json = transcription_to_json(transcript_en)
+        #Lap_html_video(listof_dict_json, videoID, langSourceText="en")
         tbaodong1.write("<h4 style='text-align: center; color:orange;'>"+YouTube(url_yt).title+"</h4>", unsafe_allow_html=True)
         tbaodong3.empty()
         st.write('---')
