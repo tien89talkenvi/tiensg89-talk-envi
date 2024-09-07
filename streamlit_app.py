@@ -547,7 +547,7 @@ if url_yt:
             Lap_html_video(transcript_en, videoID, langSourceText="en")
             tbaodong3.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
             st.write('---')
-            st.write('Video nay dai : ' + str(int(tluong/60)+1) + ' phut. (Có thể bị cắt khi quá 120 phút!)')
+            st.write('Video nay dai  ' + str(int(tluong/60)+1) + ' phut. (Có thể bị cắt khi quá 120 phút!)')
             st.balloons()
         else:   # khong co transcript_en tai Yt thi phai lay ai api whjax
             tbaodong3.write(':red[Không có phiên âm trên Youtube.  Xin đợi lấy từ Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
@@ -558,7 +558,7 @@ if url_yt:
                 Lap_html_video(listof_dict_json, videoID, langSourceText="en")
                 tbaodong3.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
                 st.write('---')
-                st.write('Video nay dai : ' + str(int(tluong/60)+1) + ' phut. (Có thể bị cắt khi quá 120 phút!)')
+                st.write('Video nay dai  ' + str(int(tluong/60)+1) + ' phut. (Có thể bị cắt khi quá 120 phút!)')
                 st.balloons()
             else:
                 tbaodong3.write(':red[Chưa thành công! Có thể làm lại hoặc tiếp tục bằng url khác.]')
