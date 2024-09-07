@@ -18,7 +18,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube, extract
 from streamlit_input_box import input_box
 from gradio_client import Client 
-import re
+
 #-----Chay rat tot tren laptop window nhung khi dua len gihub de chay tren icloud thi khong dat.Test mat 2 ngay van the 8-9-2024
 
 
@@ -39,6 +39,7 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", u
 #         """, unsafe_allow_html=True)
 
 #----------------------------------------------------------------------------------------------------------
+@st.cache_data
 def Lay_id_tde_tluong(url_yt):
     try:
         videoID = extract.video_id(url_yt)
@@ -48,7 +49,7 @@ def Lay_id_tde_tluong(url_yt):
     except:
         return None,None,None
 
-
+@st.cache_data
 def Lay_transcript_en(videoID):
     try:
         transcript_list = YouTubeTranscriptApi.list_transcripts(videoID)
@@ -528,13 +529,14 @@ def transcription_to_json(my_text):
 #https://youtu.be/8QlXeGWS-EU?si=vPyl1aFhfCPEEEzK beo dat
 #---Bat Dau Main ------------------------------------------------------------------------------------------------
 tbaodong1 = st.empty()
-tbaodong1.write("<h3 style='text-align: center; color: green;'>VIDEO WITH LISTENING SUBTITLES</h3>", unsafe_allow_html=True)
+tbaodong1.write("<h2 style='text-align: center; color: green;'>VIDEO FOR LISTENING SUBTITLES</h2>", unsafe_allow_html=True)
 link_vidu="https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9"
-tbaodong2 = st.markdown("<h6 style='text-align: center; color: blue;'>"+"Enter Youtube Url ( ex. "+ "<span style='text-align: center; color: brown;'>"+link_vidu+"</span>"+" )"+"</h6>", unsafe_allow_html=True)
+tbaodong2 = st.markdown("<h6 style='text-align: center; color: lightblue;'>"+link_vidu+"</h6>", unsafe_allow_html=True)
 
 
 url_yt=input_box(min_lines=1,max_lines=3,just_once=True)
 tbaodong3 = st.empty()
+tbaodong3.write(':blue[Nhập vào khung trên URL của video youtube muốn xem. Ví dụ như url ở trên]')
 
 if url_yt:
     videoID,tieude,tluong = Lay_id_tde_tluong(url_yt)
@@ -548,7 +550,7 @@ if url_yt:
             st.write('Video nay dai : ' + str(int(tluong/60)+1) + ' phut. (Có thể bị cắt khi quá 120 phút!)')
             st.balloons()
         else:   # khong co transcript_en tai Yt thi phai lay ai api whjax
-            tbaodong3.write(':red[Không có phiên âm trên Yt nên đợi lấy từ Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
+            tbaodong3.write(':red[Không có phiên âm trên Youtube.  Xin đợi lấy từ Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
             transcript_en = Get_transciption_from_whisperjax(url_yt)
             if transcript_en:
                 #st.write(transcript_en)
@@ -558,3 +560,6 @@ if url_yt:
                 st.write('---')
                 st.write('Video nay dai : ' + str(int(tluong/60)+1) + ' phut. (Có thể bị cắt khi quá 120 phút!)')
                 st.balloons()
+            else:
+                tbaodong3.write(':red[Chưa thành công! Có thể làm lại hoặc tiếp tục bằng url khác.]')
+                
