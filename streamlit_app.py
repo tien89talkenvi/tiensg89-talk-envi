@@ -1,30 +1,11 @@
-############################################################################
-# Trinh lay phu de tu yt_dlp
-# Neu khong co PD tren do thi no tu chuyen sang whisper-jax de lay phien am, 
-#chay rat mau neu api it user
-# Neu url empty hay is not yt thi no thoat ra
-# Khi trien khai tren icloud streamlit github thi chay khong dat.
- 
-### pip install:
-#streamlit==1.38.0
-#youtube-transcript-api==0.6.2
-#pytube==15.0.0
-#streamlit-input-box==0.0.3
-#gradio-client==1.3.0
-#subprocess==
-#############################################################################
 import streamlit as st
 import streamlit.components.v1 as components 
-#from youtube_transcript_api import YouTubeTranscriptApi
 from pytube import YouTube, extract
 from streamlit_input_box import input_box
-from gradio_client import Client 
 from subprocess import run
-
-#import yt_dlp
-
-#-----Chay rat tot tren laptop window nhung khi dua len gihub de chay tren icloud thi khong dat.Test mat 2 ngay van the 8-9-2024
-
+import yt_dlp
+import time
+from faster_whisper import WhisperModel
 
 
 st.set_page_config(page_title="Speak Youtube Subtitles", layout="wide")
@@ -32,17 +13,37 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", u
 
       
 
-#----Set background----------------------------------------------------------------------------------------
-#st.set_page_config(page_title="Video với dịch & đọc phụ đề En-Vi", page_icon="🚀", layout="centered",)     
-#st.markdown(f"""
-#            <style>
-#            .stApp {{background-image: linear-gradient(0deg,lightgrey,lightgrey);
-#            background-attachment: fixed;
-#            background-size: cover}}
-#        </style>
-#         """, unsafe_allow_html=True)
-
 #----------------------------------------------------------------------------------------------------------
+#@st.cache_data
+def ydl_download_audio(url_yt):
+    #'https://www.youtube.com/watch?v=BaW_jenozKc'
+    ydl_opts = {
+        'outtmpl': 'audioyt',
+        'yes-overwrites': True,
+        'format': 'wav/bestaudio/best',
+        # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
+        'postprocessors': [{  # Extract audio using ffmpeg
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+        }]
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        error_code = ydl.download(url_yt)
+    if error_code==0:
+        return 'audioyt.wav'
+    else:
+        return None
+
+def Lay_id_tde_tluong(url_yt):
+    try:
+        videoID = extract.video_id(url_yt)
+        tieude = YouTube(url_yt).title
+        tluong = YouTube(url_yt).length
+        return videoID,tieude,tluong
+    except:
+        return None,None,None
+
 def doi_hhmmss_000_giay(hhmmss_000):
     #vd: hhmmss_000 = "12:01:1.01"
     # Tao list va dao nguoc list
@@ -64,15 +65,55 @@ def doi_hhmmss_000_giay(hhmmss_000):
     return mtotal
 
 #@st.cache_data
-def Lay_id_tde_tluong(url_yt):
+def Lay_transcript_en(url_yt):
     try:
-        videoID = extract.video_id(url_yt)
-        tieude = YouTube(url_yt).title
-        tluong = YouTube(url_yt).length
-        return videoID,tieude,tluong
-    except:
-        return None,None,None
+        ydl_opts = {}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url_yt, download=False)
 
+        if info["subtitles"] == {} and info["automatic_captions"]["en"] =={}:
+            return None
+
+        # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
+        lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
+        # bien lenh tren ra list de subprocess python chay lenh do 
+        l_lenh=lenh.split(' ')
+        run(l_lenh) # cai nay da lay tep subtien.en.ttml
+
+        tepphude="subyt.en.ttml"
+        with open(tepphude, 'r', encoding='utf-8') as sub_file:
+            textall=sub_file.read()
+        vtpdau=textall.find("<p")
+        textlay=textall[vtpdau:]
+        vtdivc=textlay.find("</div>")
+        textlay=textlay[:vtdivc]
+        l_textlay=textlay.split("\n")
+        l_textlays=[]
+        for pt in l_textlay:
+            if pt.strip() !='':
+                l_textlays.append(pt.strip())
+        #print(l_textlays, len(l_textlays))
+        transcript_en = []
+        for j,dong in enumerate(l_textlays):
+            tim=dong.split(">")[0]
+            startt=tim.split(" ")[1]
+            endt=tim.split(" ")[2]
+            starts=startt.split('="')[1][:-2]
+            ends=endt.split('="')[1][:-2]
+            #print(len(starts),len(ends))
+            startcc=doi_hhmmss_000_giay(starts)    
+            endcc=doi_hhmmss_000_giay(ends)
+            #print(startcc,endcc)
+            text=dong.split(">")[1].split("<")[0]
+            dictpt={}
+            dictpt['start']=startcc
+            dictpt['end']=endcc
+            dictpt['text']=text
+            transcript_en.append(dictpt)
+            #print(startcc,endcc,text)
+        return transcript_en
+    except:
+        return None
 #-------------------------------------------------------------
 #@st.cache_data
 def Lap_html_video(transcript_en, videoID,langSourceText):
@@ -86,7 +127,6 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
         chp3 = '<div class="youtube-marker-r" data-start='+'"'+start+'"' + ' data-end='+'"'+end+'"'+'></div>\n'
         chp4 = '</div>\n' 
         chp = chp + chp1 + chp2 + chp3 +chp4
-    #print(chp)
     # in chp de copy dan vao html     
     #print(chp)    
     sty='''
@@ -174,9 +214,7 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
             text-align: center;
             border-radius: 50%;
             border: none;} 
-        
         '''
-
     js1='''
         //bien global
         var strBuffer = {};
@@ -477,52 +515,32 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
                 """,height=900,scrolling=True)
 
 #@st.cache_data
-def Get_transciption_from_whisperjax(url_yt):
-    try:
-        client = Client("https://sanchit-gandhi-whisper-jax.hf.space/")
-        #(khai bao hf_token = "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" se on dinh hon)
-        video_html,transcription_str,transcription_time_s_str = client.predict(url_yt, "translate", True, api_name="/predict_2")
-        return transcription_str
-    except:
-        return None
+def get_subtu_fastwhisper(url_yt):
+    file_audio = ydl_download_audio(url_yt)
+    model = WhisperModel("base", device="cpu", compute_type="int8")
+    segments, info = model.transcribe(file_audio)
+    langnhanra = info.language
+    listdongs=[]
+    for segment in segments:
+        dongtext="[%.3fs -> %.3fs] %s" % (segment.start, segment.end, segment.text)
+        listdongs.append(dongtext)
+        #print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+    # Dua [[0.000s -> 9.000s]  Now, the VOA,...]  ve dang json: [{'start':'001.234', 'end':'005.567','text':'tien'},...]
+    list_dict_dong=[]
+    for dong in listdongs:
+        #dong co dang: [0.000s -> 9.000s]  Now, the VOA.
+        dictdong={}
+        dong_time=dong.strip().split("]")[0][1:] #dang: 0.000s -> 9.000s
+        dictdong['start']=dong_time.split(" -> ")[0][:-2]
+        dictdong['end']=dong_time.split(" -> ")[1][:-2]
+        dictdong['text']=dong.strip().split("]")[1].strip()
+        list_dict_dong.append(dictdong)
+    #print(list_dict_dong)
+    if len(list_dict_dong)>0:
+        return list_dict_dong,langnhanra
+    else:
+        return None, None
 
-
-#@st.cache_data
-def transcription_to_json(file_name):
-    #tep="subyt.en.ttml"
-    with open(file_name, 'r', encoding='utf-8') as sub_file:
-        textall=sub_file.read()
-    vtpdau=textall.find("<p")
-    textlay=textall[vtpdau:]
-    vtdivc=textlay.find("</div>")
-    textlay=textlay[:vtdivc]
-    l_textlay=textlay.split("\n")
-    l_textlays=[]
-    for pt in l_textlay:
-        if pt.strip() !='':
-            l_textlays.append(pt.strip())
-    #print(l_textlays, len(l_textlays))
-
-    transcript_en = []
-    for j,dong in enumerate(l_textlays):
-        tim=dong.split(">")[0]
-        startt=tim.split(" ")[1]
-        endt=tim.split(" ")[2]
-
-        starts=startt.split('="')[1][:-2]
-        ends=endt.split('="')[1][:-2]
-        #print(len(starts),len(ends))
-        startcc=doi_hhmmss_000_giay(starts)    
-        endcc=doi_hhmmss_000_giay(ends)
-        #print(startcc,endcc)
-        text=dong.split(">")[1].split("<")[0]
-        dictpt={}
-        dictpt['start']=startcc
-        dictpt['end']=endcc
-        dictpt['text']=text
-        transcript_en.append(dictpt)
-        #print(startcc,endcc,text)
-    return transcript_en
 #==============================================================================
 #https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
 #https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   BIGATE          ok en vi
@@ -547,34 +565,25 @@ tbaodong3.write(':blue[Nhập vào khung trên URL của video youtube muốn xe
 if url_yt:
     videoID,tieude,tluong = Lay_id_tde_tluong(url_yt)
     if videoID:
-        tbaodong3.write(':blue[Lấy phụ đề từ yt-dlp...]')
-        # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
-        lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
-        # bien lenh tren ra list de subprocess python chay lenh do
-        l_lenh=lenh.split(' ')
-        run(l_lenh) # cai nay da lay tep subtien.en.ttml 
-        # tep phu de dat ten co dinh la subyt.en.ttml, ham transcription_to_json se rut ra list json tu tep do
-        transcript_en = transcription_to_json("subyt.en.ttml")
-    
-        videoID = extract.video_id(url_yt)
-
+        tbaodong3.write(':blue[Lấy phụ đề từ yt_dlp...]')
+        transcript_en = Lay_transcript_en(url_yt)
         if transcript_en:
             Lap_html_video(transcript_en, videoID, langSourceText="en")
             tbaodong3.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
             st.write('---')
             st.write('Video này dài  ' + str(int(tluong/60)+1) + ' phút. (Có thể bị cắt khi quá 120 phút!)')
             st.balloons()
-        else:   # khong co transcript_en tai Yt thi phai lay ai api whjax
-            tbaodong3.write(':red[Không có phiên âm trên Youtube.  Xin đợi lấy từ Whisper-Jax...Có thể phải làm lại cho đén khi thành công!]')
-            transcript_en = Get_transciption_from_whisperjax(url_yt)
-            if transcript_en:
-                #st.write(transcript_en)
-                listof_dict_json = transcription_to_json(transcript_en)  
-                Lap_html_video(listof_dict_json, videoID, langSourceText="en")
+        else:   # khong co transcript_en tai Yt thi phai lay ai api whjax, cung chua co f audio
+            tbaodong3.write(':red[Xin đợi phiên âm từ Fast-Whisper do không có phiên âm trên yt...Có thể phải làm lại cho đén khi thành công!]')
+            transcript_language,langnhanra = get_subtu_fastwhisper(url_yt)
+            #print(transcript_language,langnhanra)
+            if transcript_language:
+                Lap_html_video(transcript_language, videoID, langSourceText=langnhanra)
                 tbaodong3.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
                 st.write('---')
                 st.write('Video này dài  ' + str(int(tluong/60)+1) + ' phút. (Có thể bị cắt khi quá 120 phút!)')
                 st.balloons()
             else:
-                tbaodong3.write(':red[Chưa thành công! Có thể làm lại hoặc tiếp tục bằng url khác.]')
-                
+                tbaodong3.write(':blue[Nhập vào khung trên URL của video youtube muốn xem. Ví dụ như url ở trên]')
+                #pass
+
