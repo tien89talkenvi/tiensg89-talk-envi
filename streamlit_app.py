@@ -4,20 +4,30 @@ from pytube import YouTube, extract
 from streamlit_input_box import input_box
 from subprocess import run
 import yt_dlp
-import time
+import os
 from faster_whisper import WhisperModel
+import tempfile
 
 
 st.set_page_config(page_title="Speak Youtube Subtitles", layout="wide")
 st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
 #----------------------------------------------------------------------------------------------------------
 #@st.cache_data
-def ydl_download_audio(url_yt):
-    #'https://www.youtube.com/watch?v=BaW_jenozKc' url ua 1 tep audio rat ngan
-    lenh = 'yt-dlp --extract-audio --audio-format wav --audio-quality 0 -o audioyt.%(ext)s --yes-overwrites '+url_yt
-    l_lenh=lenh.split(' ')
-    run(l_lenh) # cai nay de ra tep audioyt.m4a 
-    return "audioyt.wav"
+#def ydl_download_audio(url_yt):
+#    #'https://www.youtube.com/watch?v=BaW_jenozKc' url ua 1 tep audio rat ngan
+#    lenh = 'yt-dlp --extract-audio --audio-format wav --audio-quality 0 -o audioyt.%(ext)s --yes-overwrites '+url_yt
+#    l_lenh=lenh.split(' ')
+#    run(l_lenh) # cai nay de ra tep audioyt.m4a 
+#    return "audioyt.wav"
+
+def download_yt_audio(url_yt,filename):
+    ydl_opts = {
+        "format" : 'bestaudio/best',
+        "outtmpl": filename,
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download(url_yt)    # kq la tep .webm
+    return filename    
 
 def Lay_id_tde_tluong(url_yt):
     try:
@@ -500,33 +510,37 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
 
 #@st.cache_data
 def get_subtu_fastwhisper(url_yt):
-    try:
-        file_audio = ydl_download_audio(url_yt)
-        model = WhisperModel("base", device="cpu", compute_type="int8")
-        segments, info = model.transcribe(file_audio)
-        langnhanra = info.language
-        listdongs=[]
-        for segment in segments:
-            dongtext="[%.3fs -> %.3fs] %s" % (segment.start, segment.end, segment.text)
-            listdongs.append(dongtext)
-            #print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
-        # Dua [[0.000s -> 9.000s]  Now, the VOA,...]  ve dang json: [{'start':'001.234', 'end':'005.567','text':'tien'},...]
-        list_dict_dong=[]
-        for dong in listdongs:
-            #dong co dang: [0.000s -> 9.000s]  Now, the VOA.
-            dictdong={}
-            dong_time=dong.strip().split("]")[0][1:] #dang: 0.000s -> 9.000s
-            dictdong['start']=dong_time.split(" -> ")[0][:-2]
-            dictdong['end']=dong_time.split(" -> ")[1][:-2]
-            dictdong['text']=dong.strip().split("]")[1].strip()
-            list_dict_dong.append(dictdong)
-        #print(list_dict_dong)
-        if len(list_dict_dong)>0:
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        filepath = os.path.join(tmpdirname, "audioyt.wav")
+        filepath = download_yt_audio(url_yt, filepath)
+        #with open(filepath, "rb") as f:
+        #    data_inputs = f.read()
+        #st.audio(data_inputs)
+        try:
+            model = WhisperModel("base", device="cpu", compute_type="int8") #
+            segments, info = model.transcribe(filepath)
+            langnhanra = info.language
+            listdongs=[]
+            for segment in segments:
+                dongtext="[%.3fs -> %.3fs] %s" % (segment.start, segment.end, segment.text)
+                listdongs.append(dongtext)
+                #print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+            # Dua [[0.000s -> 9.000s]  Now, the VOA,...]  ve dang json: [{'start':'001.234', 'end':'005.567','text':'tien'},...]
+            list_dict_dong=[]
+            for dong in listdongs:
+                #dong co dang: [0.000s -> 9.000s]  Now, the VOA.
+                dictdong={}
+                dong_time=dong.strip().split("]")[0][1:] #dang: 0.000s -> 9.000s
+                dictdong['start']=dong_time.split(" -> ")[0][:-2]
+                dictdong['end']=dong_time.split(" -> ")[1][:-2]
+                dictdong['text']=dong.strip().split("]")[1].strip()
+                list_dict_dong.append(dictdong)
+            #st.write(list_dict_dong)
+            #print(list_dict_dong)
             return list_dict_dong,langnhanra
-        else:
-            return [], ''
-    except:
-        return [], ''
+        except:
+            st.write('Loi')
+            return None
 #==============================================================================
 #https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
 #https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   BIGATE          ok en vi
