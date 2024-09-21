@@ -10,30 +10,14 @@ from faster_whisper import WhisperModel
 
 st.set_page_config(page_title="Speak Youtube Subtitles", layout="wide")
 st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
-
-      
-
 #----------------------------------------------------------------------------------------------------------
 #@st.cache_data
 def ydl_download_audio(url_yt):
-    #'https://www.youtube.com/watch?v=BaW_jenozKc'
-    ydl_opts = {
-        'outtmpl': 'audioyt',
-        'yes-overwrites': True,
-        'format': 'wav/bestaudio/best',
-        # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
-        'postprocessors': [{  # Extract audio using ffmpeg
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'wav',
-        }]
-    }
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        error_code = ydl.download(url_yt)
-    if error_code==0:
-        return 'audioyt.wav'
-    else:
-        return None
+    #'https://www.youtube.com/watch?v=BaW_jenozKc' url ua 1 tep audio rat ngan
+    lenh = 'yt-dlp --extract-audio --audio-format wav --audio-quality 0 -o audioyt.%(ext)s --yes-overwrites '+url_yt
+    l_lenh=lenh.split(' ')
+    run(l_lenh) # cai nay de ra tep audioyt.m4a 
+    return "audioyt.wav"
 
 def Lay_id_tde_tluong(url_yt):
     try:
@@ -539,8 +523,7 @@ def get_subtu_fastwhisper(url_yt):
     if len(list_dict_dong)>0:
         return list_dict_dong,langnhanra
     else:
-        return None, None
-
+        return [], ''
 #==============================================================================
 #https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
 #https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   BIGATE          ok en vi
