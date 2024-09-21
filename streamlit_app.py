@@ -500,29 +500,32 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
 
 #@st.cache_data
 def get_subtu_fastwhisper(url_yt):
-    file_audio = ydl_download_audio(url_yt)
-    model = WhisperModel("base", device="cpu", compute_type="int8")
-    segments, info = model.transcribe(file_audio)
-    langnhanra = info.language
-    listdongs=[]
-    for segment in segments:
-        dongtext="[%.3fs -> %.3fs] %s" % (segment.start, segment.end, segment.text)
-        listdongs.append(dongtext)
-        #print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
-    # Dua [[0.000s -> 9.000s]  Now, the VOA,...]  ve dang json: [{'start':'001.234', 'end':'005.567','text':'tien'},...]
-    list_dict_dong=[]
-    for dong in listdongs:
-        #dong co dang: [0.000s -> 9.000s]  Now, the VOA.
-        dictdong={}
-        dong_time=dong.strip().split("]")[0][1:] #dang: 0.000s -> 9.000s
-        dictdong['start']=dong_time.split(" -> ")[0][:-2]
-        dictdong['end']=dong_time.split(" -> ")[1][:-2]
-        dictdong['text']=dong.strip().split("]")[1].strip()
-        list_dict_dong.append(dictdong)
-    #print(list_dict_dong)
-    if len(list_dict_dong)>0:
-        return list_dict_dong,langnhanra
-    else:
+    try:
+        file_audio = ydl_download_audio(url_yt)
+        model = WhisperModel("base", device="cpu", compute_type="int8")
+        segments, info = model.transcribe(file_audio)
+        langnhanra = info.language
+        listdongs=[]
+        for segment in segments:
+            dongtext="[%.3fs -> %.3fs] %s" % (segment.start, segment.end, segment.text)
+            listdongs.append(dongtext)
+            #print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
+        # Dua [[0.000s -> 9.000s]  Now, the VOA,...]  ve dang json: [{'start':'001.234', 'end':'005.567','text':'tien'},...]
+        list_dict_dong=[]
+        for dong in listdongs:
+            #dong co dang: [0.000s -> 9.000s]  Now, the VOA.
+            dictdong={}
+            dong_time=dong.strip().split("]")[0][1:] #dang: 0.000s -> 9.000s
+            dictdong['start']=dong_time.split(" -> ")[0][:-2]
+            dictdong['end']=dong_time.split(" -> ")[1][:-2]
+            dictdong['text']=dong.strip().split("]")[1].strip()
+            list_dict_dong.append(dictdong)
+        #print(list_dict_dong)
+        if len(list_dict_dong)>0:
+            return list_dict_dong,langnhanra
+        else:
+            return [], ''
+    except:
         return [], ''
 #==============================================================================
 #https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
