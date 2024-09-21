@@ -19,7 +19,7 @@ def ydl_download_audio(url_yt):
     #'https://www.youtube.com/watch?v=BaW_jenozKc'
     ydl_opts = {
         'outtmpl': 'audioyt',
-        #'yes-overwrites': True,
+        'yes-overwrites': True,
         'format': 'wav/bestaudio/best',
         # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
