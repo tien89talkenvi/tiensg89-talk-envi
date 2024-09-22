@@ -7,7 +7,7 @@ import yt_dlp
 import os
 from faster_whisper import WhisperModel
 import tempfile
-
+import requests
 
 st.set_page_config(page_title="Speak Youtube Subtitles", layout="wide")
 st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", unsafe_allow_html=True)
@@ -24,6 +24,8 @@ def download_yt_audio(url_yt,filename):
     ydl_opts = {
         "format" : 'bestaudio/best',
         "outtmpl": filename,
+        "yes-overwrites" : True,
+
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download(url_yt)    # kq la tep .webm
@@ -60,23 +62,18 @@ def doi_hhmmss_000_giay(hhmmss_000):
 
 #@st.cache_data
 def Lay_transcript_en(url_yt):
-    try:
-        ydl_opts = {}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url_yt, download=False)
-
-        if info["subtitles"] == {} and info["automatic_captions"]["en"] =={}:
-            return None
-
-        # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
-        lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
-        # bien lenh tren ra list de subprocess python chay lenh do 
-        l_lenh=lenh.split(' ')
-        run(l_lenh) # cai nay da lay tep subtien.en.ttml
-
-        tepphude="subyt.en.ttml"
-        with open(tepphude, 'r', encoding='utf-8') as sub_file:
-            textall=sub_file.read()
+    ydl_opts = {
+        'write-auto-subs' : True,
+        'sub-format ttml': True,
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(url_yt, download=False)
+    if info_dict["automatic_captions"]:
+        #Trong info_dict["automatic_captions"]['en'] o vi tri ap chot la url cua ttml
+        url_ttml = info_dict["automatic_captions"]['en'][-2]['url']
+        # lay text tu url de rut ra transcript_en
+        f=requests.get(url_ttml)
+        textall = f.text
         vtpdau=textall.find("<p")
         textlay=textall[vtpdau:]
         vtdivc=textlay.find("</div>")
@@ -105,9 +102,14 @@ def Lay_transcript_en(url_yt):
             dictpt['text']=text
             transcript_en.append(dictpt)
             #print(startcc,endcc,text)
-        return transcript_en
-    except:
-        return None
+        #print(transcript_en)
+        # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
+        #luu de nc lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
+        if len(transcript_en)>0:
+            return transcript_en
+        else:
+            transcript_en=[]
+            return transcript_en
 #-------------------------------------------------------------
 #@st.cache_data
 def Lap_html_video(transcript_en, videoID,langSourceText):
@@ -536,11 +538,15 @@ def get_subtu_fastwhisper(url_yt):
                 dictdong['text']=dong.strip().split("]")[1].strip()
                 list_dict_dong.append(dictdong)
             #st.write(list_dict_dong)
-            #print(list_dict_dong)
-            return list_dict_dong,langnhanra
+            if len(list_dict_dong)>0:
+                return list_dict_dong,langnhanra
+            else :
+                list_dict_dong=[]
+                return list_dict_dong,''
+
         except:
-            st.write('Loi')
-            return None
+            print('Loi')
+            return [],''
 #==============================================================================
 #https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
 #https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   BIGATE          ok en vi
@@ -574,10 +580,10 @@ if url_yt:
             st.write('Video này dài  ' + str(int(tluong/60)+1) + ' phút. (Có thể bị cắt khi quá 120 phút!)')
             st.balloons()
         else:   # khong co transcript_en tai Yt thi phai lay ai api whjax, cung chua co f audio
-            tbaodong3.write(':red[Xin đợi phiên âm từ Fast-Whisper do không có phiên âm trên yt...Có thể phải làm lại cho đén khi thành công!]')
+            tbaodong3.write(':green[Xin đợi phiên âm từ Fast-Whisper do không có phiên âm trên yt...Có thể phải làm lại cho đén khi thành công!]')
             transcript_language,langnhanra = get_subtu_fastwhisper(url_yt)
             #print(transcript_language,langnhanra)
-            if transcript_language:
+            if len(transcript_language)>0:
                 Lap_html_video(transcript_language, videoID, langSourceText=langnhanra)
                 tbaodong3.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
                 st.write('---')
