@@ -24,8 +24,6 @@ def download_yt_audio(url_yt,filename):
     ydl_opts = {
         "format" : 'bestaudio/best',
         "outtmpl": filename,
-        "yes-overwrites" : True,
-
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download(url_yt)    # kq la tep .webm
@@ -105,7 +103,7 @@ def Lay_transcript_en(url_yt):
         #print(transcript_en)
         # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
         #luu de nc lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
-        if len(transcript_en)>0:
+        if transcript_en:
             return transcript_en
         else:
             transcript_en=[]
