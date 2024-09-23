@@ -63,10 +63,7 @@ def doi_hhmmss_000_giay(hhmmss_000):
 def Lay_transcript_en(url_yt):
     transcript_en = []
     try:
-        ydl_opts = {
-            'write-auto-subs' : True,
-            'sub-format ttml': True,
-        }
+        ydl_opts = {}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url_yt, download=False)
         if info_dict["automatic_captions"]:
@@ -603,3 +600,20 @@ if url_yt:
             else:
                 tbaodong3.write(':blue[Nhập vào khung trên URL của video youtube muốn xem. Ví dụ như url ở trên]')
 
+#Improve your English 👍_ Very Interesting Story - Level 3 - The History of America _ VOA #7
+# 7-https://youtu.be/WCZ2-SIT7W8?si=eUAWum9rCDYEsjY8
+
+#Improve your English ⭐ | Very Interesting Story - Level 3 - Million Pound Bank Note | VOA #8
+# 8-https://youtu.be/G_uExyg8M2A?si=hFnMcBJCndcyiApg
+
+#Improve your English ⭐ | Very Interesting Story - Level 3 - The Great Gatsby P1 | VOA #9
+# 9-https://youtu.be/4ONCixK4z1A?si=mDV3a0ru82g-_fTe
+
+#Improve your English ⭐ | Very Interesting Story - Level 3 - History of the USA | VOA #10
+# 10-https://youtu.be/K9W6v57l6Ag?si=Tz6EZk6a66hS_lWo
+
+#Improve your English ⭐ | Very Interesting Story - Level 3 - Aesop's Fables | VOA #11
+# 11- https://youtu.be/4aqjFp1o9iE?si=t5_tl56iR8hVmsnj
+
+#Improve your English ⭐ | Very Interesting Story - Level 3 - Beauty's Sacrifice | VOA #12
+# 12-https://youtu.be/HdGN08QZqlY?si=LQlDfyEvvsn-Id2S
