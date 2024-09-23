@@ -61,7 +61,6 @@ def doi_hhmmss_000_giay(hhmmss_000):
 
 @st.cache_data
 def Lay_transcript_en(url_yt):
-    transcript_en = []
     try:
         ydl_opts = {}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -103,11 +102,7 @@ def Lay_transcript_en(url_yt):
             #print(transcript_en)
             # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
             #luu de nc lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
-            if transcript_en:
-                return transcript_en
-            else:
-                transcript_en=[]
-                return transcript_en
+            return transcript_en
     except:
         print('Loi!')
         transcript_en=[]
@@ -516,8 +511,6 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
 
 @st.cache_data
 def get_subtu_fastwhisper(url_yt):
-    list_dict_dong=[]
-    langnhanra=''
     try:
         # Moi khi ham nay chay thi tao ra mot thu muc tam voi ten nau nhien moi, xong viec thi xoa
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -544,12 +537,7 @@ def get_subtu_fastwhisper(url_yt):
                 dictdong['end']=dong_time.split(" -> ")[1][:-2]
                 dictdong['text']=dong.strip().split("]")[1].strip()
                 list_dict_dong.append(dictdong)
-            #st.write(list_dict_dong)
-            if len(list_dict_dong)>0:
-                return list_dict_dong,langnhanra
-            else :
-                list_dict_dong=[]
-                return list_dict_dong,''
+            return list_dict_dong,langnhanra
     except:
         print('Loi')
         list_dict_dong=[]
@@ -591,7 +579,7 @@ if url_yt:
             tbaodong3.write(':green[Xin đợi phiên âm từ Fast-Whisper do không có phụ đề trên yt...Có thể phải làm lại cho đén khi thành công!]')
             transcript_language,langnhanra = get_subtu_fastwhisper(url_yt)
             #print(transcript_language,langnhanra)
-            if len(transcript_language)>0:
+            if transcript_language:
                 Lap_html_video(transcript_language, videoID, langSourceText=langnhanra)
                 tbaodong3.write("<h4 style='text-align: center; color:orange;'>"+tieude+"</h4>", unsafe_allow_html=True)
                 st.write('---')
@@ -599,7 +587,7 @@ if url_yt:
                 st.balloons()
             else:
                 tbaodong3.write(':blue[Nhập vào khung trên URL của video youtube muốn xem. Ví dụ như url ở trên]')
-
+                pass
 #Improve your English 👍_ Very Interesting Story - Level 3 - The History of America _ VOA #7
 # 7-https://youtu.be/WCZ2-SIT7W8?si=eUAWum9rCDYEsjY8
 
