@@ -21,6 +21,7 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 1.8rem;} ", u
 #    return "audioyt.wav"
 
 def download_yt_audio(url_yt,filename):
+    # filename thuc ra la pathfilename thay doi moi khi me no truyen vao
     ydl_opts = {
         "format" : 'bestaudio/best',
         "outtmpl": filename,
@@ -58,56 +59,64 @@ def doi_hhmmss_000_giay(hhmmss_000):
     # 43261.01
     return mtotal
 
-#@st.cache_data
+@st.cache_data
 def Lay_transcript_en(url_yt):
-    ydl_opts = {
-        'write-auto-subs' : True,
-        'sub-format ttml': True,
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(url_yt, download=False)
-    if info_dict["automatic_captions"]:
-        #Trong info_dict["automatic_captions"]['en'] o vi tri ap chot la url cua ttml
-        url_ttml = info_dict["automatic_captions"]['en'][-2]['url']
-        # lay text tu url de rut ra transcript_en
-        f=requests.get(url_ttml)
-        textall = f.text
-        vtpdau=textall.find("<p")
-        textlay=textall[vtpdau:]
-        vtdivc=textlay.find("</div>")
-        textlay=textlay[:vtdivc]
-        l_textlay=textlay.split("\n")
-        l_textlays=[]
-        for pt in l_textlay:
-            if pt.strip() !='':
-                l_textlays.append(pt.strip())
-        #print(l_textlays, len(l_textlays))
-        transcript_en = []
-        for j,dong in enumerate(l_textlays):
-            tim=dong.split(">")[0]
-            startt=tim.split(" ")[1]
-            endt=tim.split(" ")[2]
-            starts=startt.split('="')[1][:-2]
-            ends=endt.split('="')[1][:-2]
-            #print(len(starts),len(ends))
-            startcc=doi_hhmmss_000_giay(starts)    
-            endcc=doi_hhmmss_000_giay(ends)
-            #print(startcc,endcc)
-            text=dong.split(">")[1].split("<")[0]
-            dictpt={}
-            dictpt['start']=startcc
-            dictpt['end']=endcc
-            dictpt['text']=text
-            transcript_en.append(dictpt)
-            #print(startcc,endcc,text)
-        #print(transcript_en)
-        # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
-        #luu de nc lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
-        if transcript_en:
-            return transcript_en
-        else:
-            transcript_en=[]
-            return transcript_en
+    transcript_en = []
+    try:
+        ydl_opts = {
+            'write-auto-subs' : True,
+            'sub-format ttml': True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(url_yt, download=False)
+        if info_dict["automatic_captions"]:
+            #Trong info_dict["automatic_captions"]['en'] o vi tri ap chot la url cua ttml
+            url_ttml = info_dict["automatic_captions"]['en'][-2]['url']
+            # lay text tu url de rut ra transcript_en
+            f=requests.get(url_ttml)
+            textall = f.text
+            vtpdau=textall.find("<p")
+            textlay=textall[vtpdau:]
+            vtdivc=textlay.find("</div>")
+            textlay=textlay[:vtdivc]
+            l_textlay=textlay.split("\n")
+            l_textlays=[]
+            for pt in l_textlay:
+                if pt.strip() !='':
+                    l_textlays.append(pt.strip())
+            #print(l_textlays, len(l_textlays))
+            transcript_en = []
+            for j,dong in enumerate(l_textlays):
+                tim=dong.split(">")[0]
+                startt=tim.split(" ")[1]
+                endt=tim.split(" ")[2]
+                starts=startt.split('="')[1][:-2]
+                ends=endt.split('="')[1][:-2]
+                #print(len(starts),len(ends))
+                startcc=doi_hhmmss_000_giay(starts)    
+                endcc=doi_hhmmss_000_giay(ends)
+                #print(startcc,endcc)
+                text=dong.split(">")[1].split("<")[0]
+                dictpt={}
+                dictpt['start']=startcc
+                dictpt['end']=endcc
+                dictpt['text']=text
+                transcript_en.append(dictpt)
+                #print(startcc,endcc,text)
+            #print(transcript_en)
+            # Lenh CMD de download subtitle tu dong dich sang en cho ra file ttml ghi de khong can hoi
+            #luu de nc lenh='yt-dlp -o subyt.%(ext)s --skip-download --write-auto-subs --sub-format ttml --yes-overwrites'+' '+url_yt
+            if transcript_en:
+                return transcript_en
+            else:
+                transcript_en=[]
+                return transcript_en
+    except:
+        print('Loi!')
+        transcript_en=[]
+        return transcript_en
+
+
 #-------------------------------------------------------------
 #@st.cache_data
 def Lap_html_video(transcript_en, videoID,langSourceText):
@@ -508,15 +517,18 @@ def Lap_html_video(transcript_en, videoID,langSourceText):
                 </html>
                 """,height=900,scrolling=True)
 
-#@st.cache_data
+@st.cache_data
 def get_subtu_fastwhisper(url_yt):
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        filepath = os.path.join(tmpdirname, "audioyt.wav")
-        filepath = download_yt_audio(url_yt, filepath)
-        #with open(filepath, "rb") as f:
-        #    data_inputs = f.read()
-        #st.audio(data_inputs)
-        try:
+    list_dict_dong=[]
+    langnhanra=''
+    try:
+        # Moi khi ham nay chay thi tao ra mot thu muc tam voi ten nau nhien moi, xong viec thi xoa
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            filepath = os.path.join(tmpdirname, "audioyt.wav")
+            filepath = download_yt_audio(url_yt, filepath)
+            #with open(filepath, "rb") as f:
+            #    data_inputs = f.read()
+            #st.audio(data_inputs)
             model = WhisperModel("base", device="cpu", compute_type="int8") #
             segments, info = model.transcribe(filepath)
             langnhanra = info.language
@@ -541,10 +553,11 @@ def get_subtu_fastwhisper(url_yt):
             else :
                 list_dict_dong=[]
                 return list_dict_dong,''
-
-        except:
-            print('Loi')
-            return [],''
+    except:
+        print('Loi')
+        list_dict_dong=[]
+        langnhanra=''
+        return list_dict_dong,langnhanra
 #==============================================================================
 #https://youtu.be/3c-iBn73dDE?si=loeUZPwUmmh0iGW4   2h 40phut
 #https://youtu.be/DpxxTryJ2fY?si=oMvtK4Nqt-y6Een9   BIGATE          ok en vi
@@ -578,7 +591,7 @@ if url_yt:
             st.write('Video này dài  ' + str(int(tluong/60)+1) + ' phút. (Có thể bị cắt khi quá 120 phút!)')
             st.balloons()
         else:   # khong co transcript_en tai Yt thi phai lay ai api whjax, cung chua co f audio
-            tbaodong3.write(':green[Xin đợi phiên âm từ Fast-Whisper do không có phiên âm trên yt...Có thể phải làm lại cho đén khi thành công!]')
+            tbaodong3.write(':green[Xin đợi phiên âm từ Fast-Whisper do không có phụ đề trên yt...Có thể phải làm lại cho đén khi thành công!]')
             transcript_language,langnhanra = get_subtu_fastwhisper(url_yt)
             #print(transcript_language,langnhanra)
             if len(transcript_language)>0:
@@ -589,5 +602,4 @@ if url_yt:
                 st.balloons()
             else:
                 tbaodong3.write(':blue[Nhập vào khung trên URL của video youtube muốn xem. Ví dụ như url ở trên]')
-                #pass
 
