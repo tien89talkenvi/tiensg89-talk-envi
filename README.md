@@ -1,3 +1,1 @@
-Day la TM chua project Listen youtube subtitles 
-Thu dung tu 22-9-2024
-
+Q&A with Groq 27-10-27 (Sophie)
